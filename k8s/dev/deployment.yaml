@@ -1,27 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-	name: frontend-deployment
-	# ไม่ต้องระบุ namespace ที่นี่ เพราะ ArgoCD จะใส่ให้เอง
+  name: frontend-deployment
 spec:
-	replicas: 2 # สร้าง 2 Pods เพื่อความ отказоустойчивость
-	selector:
-		matchLabels:
-		  app: frontend
-	template:
-		metadata:
-		  labels:
-			app: frontend
-		spec:
-		  containers:
-		  - name: frontend-container
-			image: nginx:1.21 # <-- เปลี่ยนเป็น Docker image ของ frontend คุณ
-			ports:
-			- containerPort: 80
-			resources:
-			  requests:
-			  	cpu: "100m"
-				memory: "128Mi"
-			  limits:
-				cpu: "250m"
-				memory: "256Mi"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend-container
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
