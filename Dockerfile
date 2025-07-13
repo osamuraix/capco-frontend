@@ -13,6 +13,8 @@ RUN npm install
 COPY . .
 
 # Build the application for production
+# Explicitly set the build path to ensure output location
+ENV BUILD_PATH=/app/build
 RUN npm run build
 
 # Stage 2: Serve the application with a production-ready NGINX server
