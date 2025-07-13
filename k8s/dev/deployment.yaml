@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: nginx:1.21
+        image: asia-southeast1-docker.pkg.dev/terraform-on-gcp-463715/frontend/frontend:latest
         ports:
         - containerPort: 80
         resources:
