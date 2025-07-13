@@ -1,0 +1,68 @@
+# .github/workflows/ci-pipeline.yml
+
+name: CI - Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  # This is the GCP Project ID. You must create this as a GitHub Secret.
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+  # This is the full location of your Artifact Registry repository.
+  # It will be different for frontend and backend.
+  # Example for frontend: asia-southeast1-docker.pkg.dev/your-project-id/frontend
+  # Example for backend:  asia-southeast1-docker.pkg.dev/your-project-id/backend
+  # You must create this as a GitHub Secret.
+  ARTIFACT_REGISTRY_REPO: ${{ secrets.ARTIFACT_REGISTRY_REPO }}
+
+  # The name of the image to be pushed.
+  # You must create this as a GitHub Secret.
+  # Example: 'frontend' or 'backend'
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+
+jobs:
+  build-and-push:
+    name: Build and Push to Google Artifact Registry
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Required for authentication to GCP
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: 'google-github-actions/auth@v1'
+        with:
+          # This is the full resource name of your Workload Identity Pool Provider.
+          # You must create this as a GitHub Secret.
+          # Example: projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          # This is the service account that the workflow will impersonate.
+          # You must create this as a GitHub Secret.
+          # Example: my-service-account@my-project.iam.gserviceaccount.com
+          service_account: ${{ secrets.GSA_EMAIL }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.ARTIFACT_REGISTRY_REPO }} --quiet
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }} # Only push on merge to main
+          tags: ${{ env.ARTIFACT_REGISTRY_REPO }}/${{ env.IMAGE_NAME }}:latest, ${{ env.ARTIFACT_REGISTRY_REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
