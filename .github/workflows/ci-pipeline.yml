@@ -43,24 +43,14 @@ jobs:
         id: auth
         uses: 'google-github-actions/auth@v1'
         with:
-          # This is the full resource name of your Workload Identity Pool Provider.
-          # You must create this as a GitHub Secret.
-          # Example: projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          # This is the service account that the workflow will impersonate.
-          # You must create this as a GitHub Secret.
-          # Example: my-service-account@my-project.iam.gserviceaccount.com
           service_account: ${{ secrets.GSA_EMAIL }}
-
-      - name: Login to Artifact Registry
-        uses: docker/login-action@v2
-        with:
-          registry: asia-southeast1-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
