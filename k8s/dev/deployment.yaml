@@ -16,7 +16,7 @@ spec:
       - name: frontend-container
         image: asia-southeast1-docker.pkg.dev/terraform-on-gcp-463715/frontend/frontend:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         resources:
           requests:
             cpu: "100m"
